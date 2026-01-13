@@ -4,6 +4,7 @@ import com.springbootweb.dto.DepartmentDTO;
 import com.springbootweb.dto.EmployeeDTO;
 import com.springbootweb.exceptions.ResourceNotFoundException;
 import com.springbootweb.services.DepartmentService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,13 +22,14 @@ public class DepartmentController {
         this.departmentService= departmentService;
     }
     @GetMapping
-    public List<DepartmentDTO> getAllDepartment(){
-        return departmentService.getAllDepartment();
+    public ResponseEntity<List<DepartmentDTO>> getAllDepartment(){
+        return ResponseEntity.ok(departmentService.getAllDepartment());
     }
 
     @PostMapping
-    public DepartmentDTO createDepartment(@RequestBody DepartmentDTO departmentDTO){
-        return departmentService.createDepartment(departmentDTO);
+    public ResponseEntity<DepartmentDTO> createDepartment(@RequestBody DepartmentDTO departmentDTO){
+        DepartmentDTO departmentDTO1= departmentService.createDepartment(departmentDTO);
+        return new ResponseEntity<>(departmentDTO1, HttpStatus.CREATED);
     }
 
     @GetMapping(path = "/{departmentId}")
