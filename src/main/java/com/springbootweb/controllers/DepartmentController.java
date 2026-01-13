@@ -34,10 +34,7 @@ public class DepartmentController {
 
     @GetMapping(path = "/{departmentId}")
     public ResponseEntity<DepartmentDTO> getDepartmentById(@PathVariable Long departmentId ){
-         Optional<DepartmentDTO> departmentDTO=departmentService.getDepartmentById(departmentId);
-        return departmentDTO
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+         return ResponseEntity.ok(departmentService.getDepartmentById(departmentId));
 
     }
 
@@ -47,10 +44,9 @@ public class DepartmentController {
     }
 
     @DeleteMapping(path ="/{departmentId}")
-    public ResponseEntity<Boolean> deleteDepartment(@PathVariable long departmentId){
-        boolean gotDeleted= departmentService.deleteDepartment(departmentId);
-        if(gotDeleted) return ResponseEntity.ok(true);
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> deleteDepartment(@PathVariable long departmentId){
+        departmentService.deleteDepartment(departmentId);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping(path = "/{departmentId}")

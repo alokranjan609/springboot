@@ -27,12 +27,14 @@ public class EmployeeController {
         this.employeeService = employeeService;
     }
 
-    @GetMapping(path = "/{employeeId}")
-    public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long employeeId){
-        Optional<EmployeeDTO> employeeDTO= employeeService.getEmployeeById(employeeId);
-        return employeeDTO.map(employeeDTO1 -> ResponseEntity.ok(employeeDTO1)).orElseThrow(()-> new ResourceNotFoundException("Employee was not found"));
+    @GetMapping("/{employeeId}")
+    public ResponseEntity<EmployeeDTO> getEmployeeById(
+            @PathVariable Long employeeId) {
 
+        return ResponseEntity.ok(
+                employeeService.getEmployeeById(employeeId));
     }
+
     @GetMapping
     public ResponseEntity<List<EmployeeDTO>> getAllEmployee(){
         return ResponseEntity.ok(employeeService.getAllEmployee());
@@ -49,10 +51,9 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.updateEmployee(employeeDTO,employeeId));
     }
    @DeleteMapping(path ="/{employeeId}")
-    public ResponseEntity<Boolean> deleteEmployee(@PathVariable long employeeId){
-        boolean gotDeleted= employeeService.deleteEmployee(employeeId);
-        if(gotDeleted) return ResponseEntity.ok(true);
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> deleteEmployee(@PathVariable long employeeId){
+        employeeService.deleteEmployee(employeeId);
+        return ResponseEntity.noContent().build();
    }
 
 

@@ -4,6 +4,7 @@ import com.springbootweb.dto.DepartmentDTO;
 import com.springbootweb.dto.EmployeeDTO;
 import com.springbootweb.entities.DepartmentEntity;
 import com.springbootweb.entities.EmployeeEntity;
+import com.springbootweb.exceptions.ResourceNotFoundException;
 import com.springbootweb.repositories.DepartmentRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -39,28 +40,34 @@ public class DepartmentService {
         DepartmentEntity savedDepartment = departmentRepository.save(tosaveEntity);
         return modelMapper.map(savedDepartment, DepartmentDTO.class);
     }
-    public Optional<DepartmentDTO> getDepartmentById(Long id) {
+    public DepartmentDTO getDepartmentById(Long id) {
+        if(!departmentRepository.existsById(id)){
+            throw new ResourceNotFoundException("No department found for this id");
+        }
 
-        return departmentRepository.findById(id)
-                .map(entity -> modelMapper.map(entity, DepartmentDTO.class));
+        return modelMapper.map(departmentRepository.findById(id),DepartmentDTO.class);
     }
 
     public DepartmentDTO updateDepartment( DepartmentDTO departmentDTO, long departmentId) {
         DepartmentEntity departmentEntity =modelMapper.map(departmentDTO,DepartmentEntity.class);
+        if(!departmentRepository.existsById(departmentId)){
+            throw new ResourceNotFoundException("No department found for this id");
+        }
         departmentEntity.setId(departmentId);
         DepartmentEntity updatedEntity=departmentRepository.save(departmentEntity);
         return modelMapper.map(updatedEntity,DepartmentDTO.class);
     }
 
-    public boolean deleteDepartment(long departmentId) {
-        boolean isExist=departmentRepository.existsById(departmentId);
-        if(!isExist) return false;
+    public void deleteDepartment(long departmentId) {
+        if(!departmentRepository.existsById(departmentId)){
+            throw new ResourceNotFoundException("No department found for this id");
+        }
         departmentRepository.deleteById(departmentId);
-return true;
 }
     public  DepartmentDTO updatePartialDepartment(Map<String, Object> updates, long departmentId) {
-        boolean isExist =departmentRepository.existsById(departmentId);
-        if(!isExist) return null;
+        if(!departmentRepository.existsById(departmentId)){
+            throw new ResourceNotFoundException("No department found for this id");
+        }
         DepartmentEntity departmentEntity=departmentRepository.findById(departmentId).get();
         updates.forEach((field,value)->{
                     Field fieldTobeUpdated= ReflectionUtils.findField(DepartmentEntity.class,field);
