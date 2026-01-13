@@ -25,6 +25,4 @@ public class EmployeeDTO {
     private LocalDate dateofjoining;
     @JsonProperty("isActive")
     private Boolean isActive;
-
-
 }
