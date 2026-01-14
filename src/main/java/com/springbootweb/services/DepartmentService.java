@@ -36,6 +36,10 @@ public class DepartmentService {
     }
 
     public DepartmentDTO createDepartment(DepartmentDTO departmentDTO) {
+
+//        if (departmentRepository.existsByDepartment(departmentDTO.getTitle())) {
+//            throw new IllegalArgumentException("Email already exists");
+//        }
         DepartmentEntity tosaveEntity=modelMapper.map(departmentDTO,DepartmentEntity.class);
         DepartmentEntity savedDepartment = departmentRepository.save(tosaveEntity);
         return modelMapper.map(savedDepartment, DepartmentDTO.class);

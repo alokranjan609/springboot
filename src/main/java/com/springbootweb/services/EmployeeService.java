@@ -48,6 +48,9 @@ public class EmployeeService {
     }
 
     public EmployeeDTO createEmployee(EmployeeDTO inputEmployee){
+        if (employeeRepository.existsByEmail(inputEmployee.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
         EmployeeEntity tosaveEntity=modelMapper.map(inputEmployee,EmployeeEntity.class);
         EmployeeEntity savedEmployee = employeeRepository.save(tosaveEntity);
         return modelMapper.map(savedEmployee,EmployeeDTO.class);

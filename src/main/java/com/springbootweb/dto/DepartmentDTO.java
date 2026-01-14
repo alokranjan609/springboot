@@ -19,4 +19,5 @@ public class DepartmentDTO {
     private Boolean isActive;
     private LocalDate createdAt;
 
+
 }
