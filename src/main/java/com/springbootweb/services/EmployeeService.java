@@ -4,14 +4,18 @@ import com.springbootweb.dto.EmployeeDTO;
 import com.springbootweb.entities.EmployeeEntity;
 import com.springbootweb.exceptions.ResourceNotFoundException;
 import com.springbootweb.repositories.EmployeeRepository;
+import org.apache.tomcat.util.modeler.Registry;
 import org.modelmapper.ModelMapper;
+import org.springframework.expression.TypeConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -73,16 +77,30 @@ public class EmployeeService {
         employeeRepository.deleteById(employeeId);
     }
 
-    public EmployeeDTO updatePartialEmployee(Map<String, Object> updates, long employeeId) {
-        EmployeeEntity employeeEntity=employeeRepository.findById(employeeId).orElseThrow(()->new ResourceNotFoundException("No employee found with this"));
-        updates.forEach((field,value)->{
-                    Field fieldTobeUpdated= ReflectionUtils.findField(EmployeeEntity.class,field);
-                    assert fieldTobeUpdated != null;
-                    fieldTobeUpdated.setAccessible(true);
-                    ReflectionUtils.setField(fieldTobeUpdated,employeeEntity,value);
-                }
-                );
-        return modelMapper.map(employeeRepository.save(employeeEntity),EmployeeDTO.class);
+    public EmployeeDTO updatePartialEmployee(
+            Map<String, Object> updates, long employeeId) {
 
+        EmployeeEntity employeeEntity = employeeRepository.findById(employeeId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("No employee found with this"));
+
+        updates.forEach((field, value) -> {
+
+            Field fieldToBeUpdated =
+                    ReflectionUtils.findField(EmployeeEntity.class, field);
+
+            if (fieldToBeUpdated != null) {
+                fieldToBeUpdated.setAccessible(true);
+                if (fieldToBeUpdated.getType().equals(LocalDate.class)) {
+                    value = LocalDate.parse(value.toString());
+                }
+                ReflectionUtils.setField(
+                        fieldToBeUpdated, employeeEntity, value);
+            }
+        });
+
+        EmployeeEntity saved = employeeRepository.save(employeeEntity);
+        return modelMapper.map(saved, EmployeeDTO.class);
     }
+
 }

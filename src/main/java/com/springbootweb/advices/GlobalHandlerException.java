@@ -9,49 +9,69 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalHandlerException {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiError> handleResourceNotFound(ResourceNotFoundException resourceNotFoundException){
+    public ResponseEntity<ApiResponse<?>> handleResourceNotFound(ResourceNotFoundException resourceNotFoundException){
         ApiError apiError=ApiError.builder().
                 status(HttpStatus.NOT_FOUND).
                 message(resourceNotFoundException.getMessage()).build();
-        return new ResponseEntity<>(apiError,HttpStatus.NOT_FOUND);
+        return buildErrorResponseEntity(apiError);
 
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<?>> internalServerhandleError(Exception exception){
+        ApiError apiError=ApiError.builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .message(exception.getMessage())
+                .build();
+        return buildErrorResponseEntity(apiError);
+
+    }
+
+
 
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationErrors(
+    public ResponseEntity<ApiResponse<?>> handleValidationErrors(
             MethodArgumentNotValidException ex) {
 
-        Map<String, String> errors = new HashMap<>();
+        List<String> errors = ex
+                .getBindingResult()
+                .getAllErrors()
+                .stream()
+                .map(error -> error.getDefaultMessage())
+                .collect(Collectors.toList());
 
-        ex.getBindingResult()
-                .getFieldErrors()
-                .forEach(error ->
-                        errors.put(error.getField(),
-                                error.getDefaultMessage()));
 
-        return ResponseEntity
-                .badRequest()
-                .body(errors);
+        ApiError apiError = ApiError.builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .message("Input validation failed")
+                .suberrors(errors)
+                .build();
+        return buildErrorResponseEntity(apiError);
+
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<String> handleTypeMismatch(
+    public ResponseEntity<ApiResponse<?>> handleTypeMismatch(
             MethodArgumentTypeMismatchException ex) {
 
         String message = "Invalid value for parameter: "
                 + ex.getName();
 
-        return ResponseEntity
-                .badRequest()
-                .body(message);
+ApiError apiError=ApiError.builder()
+        .status(HttpStatus.BAD_REQUEST)
+        .message(message)
+        .build();
+return buildErrorResponseEntity(apiError);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -61,6 +81,10 @@ public class GlobalHandlerException {
         return ResponseEntity
                 .badRequest()
                 .body(ex.getMessage());
+    }
+
+    private ResponseEntity<ApiResponse<?>> buildErrorResponseEntity(ApiError apiError) {
+        return new ResponseEntity<>(new ApiResponse<>(apiError),apiError.getStatus());
     }
 
 }
